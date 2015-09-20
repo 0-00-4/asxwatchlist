@@ -1,0 +1,6 @@
+<div id="rangeContainer">
+	<a ng-class="{'bg-primary': range === 'week'}" href="#/{{asxcode}}/week">Week</a> | <a ng-class="{'bg-primary': range === 'month'}"href="#/{{asxcode}}/month">Month</a> | <a ng-class="{'bg-primary': range === 'month3'}" href="#/{{asxcode}}/month3">3 Months</a> | <a ng-class="{'bg-primary': range === 'month6'}" href="#/{{asxcode}}/month6">6 Months</a> | <a ng-class="{'bg-primary': range === 'year'}" href="#/{{asxcode}}/year">Year</a>
+</div>
+<div id="chartLoader" ng-hide="dataLoaded"><div class="throbber-loader">Loading...</div></div>
+<div class="stock-chart" data="quotes" ng-if="dataLoaded">
+</div>

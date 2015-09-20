@@ -1,0 +1,13 @@
+<div class="watchItem">
+	<a href="#/{{resultObj.Symbol | shortcode | uppercase}}" ng-class="{'isActive': isActive({location: '/' + (resultObj.Symbol).split('.')[0].toUpperCase() })}">
+		<div class="watchItemText">
+			<p class="asxCodeText"><strong>{{resultObj.Symbol | shortcode | uppercase}}</strong></p>
+			<p class="asxCodeDesc"><small>{{resultObj.Name}}</small></p>
+		</div>
+		<div class="watchItemQuote">
+			<a ng-click="deleteWatchlistItem({asxcode: resultObj.Symbol})"><img src="images/delete.png" /></a>
+			<p class="asxPrice lead">{{resultObj.LastTradePriceOnly | currency}}</p>
+			<p class="asxChangeUp" ng-class="{'text-success': resultObj.Change > 0, 'text-danger': resultObj.Change < 0}">{{resultObj.Change}}</p>
+		</div>
+	</a>
+</div>
