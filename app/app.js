@@ -35,9 +35,75 @@ financeApp.service('rangeService', function () {
 	this.range = "month3";
 });
 
+// Define factories
+financeApp.factory('yahooAPI', ['$resource', '$q', function yahooAPIFactory ($resource, $q) {
+	var factory = {};
+
+	factory.getQuote = function (asxcodes) {
+		var deferred = $q.defer();
+
+		var financeAPI = $resource('https://query.yahooapis.com/v1/public/yql', {callback: "JSON_CALLBACK" }, {get: {method: "JSONP"}});		
+		financeAPI.get({q: decodeURIComponent('select%20*%20from%20yahoo.finance.quote%20where%20symbol%20in%20(%22' + asxcodes + '%22)'),
+				format: 'json', env: decodeURIComponent('store%3A%2F%2Fdatatables.org%2Falltableswithkeys')})
+		.$promise.then(function (response) {
+			deferred.resolve(response);
+
+		}, function (error) {
+			deferred.reject(error);
+		});
+
+		return deferred.promise;
+	};
+
+	factory.getHistorical = function (asxcode, startdate, enddate) {
+		var deferred = $q.defer();
+
+		var financeAPI = $resource('https://query.yahooapis.com/v1/public/yql', {callback: "JSON_CALLBACK" }, {get: {method: "JSONP"}});		
+		financeAPI.get({q: decodeURIComponent('select%20Date%2CAdj_Close%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22' + asxcode + '.AX%22%20and%20startDate%20%3D%20%22' + moment(startdate).format('YYYY-MM-DD') + '%22%20and%20endDate%20%3D%20%22' + moment(enddate).format('YYYY-MM-DD') + '%22'),
+		format: 'json', env: decodeURIComponent('store%3A%2F%2Fdatatables.org%2Falltableswithkeys')})
+		.$promise.then(function (response) {
+			deferred.resolve(response);
+
+		}, function (error) {
+			deferred.reject(error);
+		});
+
+		return deferred.promise;
+
+	};
+
+	return factory;
+}]);
+
+financeApp.factory('dataManipulate', function dataManipulateFactory () {
+	var factory = {};
+
+	factory.convertForChart = function (quotes) {
+		var newdata = [];
+		quotes.forEach(function (quote) {
+			newdata.push([moment(quote['Date']).valueOf(), parseFloat(quote['Adj_Close'])]);
+		});
+
+		return newdata;
+	};
+
+	factory.sortDates = function (a,b) {
+		function sortFunction(a, b) {
+		    if (a[0] === b[0]) {
+		        return 0;
+		    }
+		    else {
+		        return (a[0] < b[0]) ? -1 : 1;
+		    }
+		};
+	};
+
+	return factory;
+});
+
 // Define controllers
 // Navigation page controller
-financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$location', function ($scope, $resource, $cookies, $location) {
+financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$location', '$window', 'yahooAPI', function ($scope, $resource, $cookies, $location, $window, yahooAPI) {
 	// Set default values
 	$scope.resultList = [];
 	$scope.cookieExp = moment().add(3, 'months').toDate();
@@ -47,56 +113,46 @@ financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$loc
 	// Update watchlist item stock prices
 	$scope.updateWatchItem = function (items) {
 
-		sqlstring = items.join("\",\"");
+		asxcodes = items.join("\",\"");
 
-		var financeAPI = $resource('https://query.yahooapis.com/v1/public/yql', {callback: "JSON_CALLBACK" }, {get: {method: "JSONP"}});		
-		financeAPI.get({q: decodeURIComponent('select%20*%20from%20yahoo.finance.quote%20where%20symbol%20in%20(%22' + sqlstring + '%22)'),
-				format: 'json', env: decodeURIComponent('store%3A%2F%2Fdatatables.org%2Falltableswithkeys')})
-		.$promise.then(function (response) {
-				var quotes = response.query.results.quote;
-				quotes = Array.isArray(quotes) ? quotes : [quotes];
-				quotes.forEach(function (quote) {
-					$scope.createWatchItem(quote);
-				});
-
-			}, function (error) {
-				alert("ERROR: There was an issue accessing the finance API service.");
-			});
+		yahooAPI.getQuote(asxcodes).then(function (response) {
+			var quotes = Array.isArray(response.query.results.quote) ? response.query.results.quote : [response.query.results.quote];
+			$scope.createWatchItem(quotes);
+		}, function (error) {
+			$window.alert("ERROR: There was an issue accessing the finance API service.");
+		});
 	};
 
 	// Add a new watchlist item (triggered on button click)
-	$scope.newWatchItem = function () {
-		var newcode = $scope.asxcodeinput;
-
-		if (newcode == null) {
-			alert('Please enter a valid ASX equities code...');
-			return;
-		}
-		else if ($scope.codesList.indexOf(newcode + '.AX') > -1) {
-			alert('You are already tracking ' + newcode.toUpperCase() + '!');
-			return;
-		}
-
+	$scope.newWatchItem = function (asxcode) {
+		var newcode = asxcode + ".AX";
 		$scope.dataLoaded = false;
 
-		var financeAPI = $resource('https://query.yahooapis.com/v1/public/yql', {callback: "JSON_CALLBACK" }, {get: {method: "JSONP"}});		
-		financeAPI.get({q: decodeURIComponent('select%20*%20from%20yahoo.finance.quote%20where%20symbol%20in%20(%22' + newcode + '.AX%22)'),
-				format: 'json', env: decodeURIComponent('store%3A%2F%2Fdatatables.org%2Falltableswithkeys')})
-		.$promise.then(function (response) {
-				$scope.dataLoaded = true;
-				var quote = response.query.results.quote;
+		if (newcode == null) {
+			$window.alert('Please enter a valid ASX equities code...');
+			return;
+		}
+		else if ($scope.codesList.indexOf(newcode) > -1) {
+			$window.alert('You are already tracking ' + newcode.toUpperCase() + '!');
+			return;
+		}
 
-				if(quote.StockExchange != null) {
-					$scope.createWatchItem(quote);
-					$cookies.putObject('codesCookie', $scope.codesList, {expires: $scope.cookieExp});
-					$location.path('/' + (quote.Symbol).split('.')[0].toUpperCase());
-				}
-				else {
-					alert("Woops! Looks like that stock doesn't exist :(");
-				}
-			}, function (error) {
-				alert("ERROR: There was an issue accessing the finance API service.");
-			});
+		yahooAPI.getQuote(newcode).then(function (response) {
+			$scope.dataLoaded = true;
+			var quotes = [response.query.results.quote];
+
+			if(quotes[0].StockExchange != null) {
+				$scope.createWatchItem(quotes);
+				$cookies.putObject('codesCookie', $scope.codesList, {expires: $scope.cookieExp});
+				$location.path('/' + (quotes[0].Symbol).split('.')[0].toUpperCase());
+			}
+			else {
+				$window.alert("Woops! Looks like that stock doesn't exist :(");
+			}				
+		}, function (error) {
+			$window.alert("ERROR: There was an issue accessing the finance API service.");
+		});
+
 		$scope.asxcodeinput = "";
 	};
 
@@ -118,9 +174,11 @@ financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$loc
 	};
 
 	// Add new watchlist item to lists of watched items
-	$scope.createWatchItem = function (quote) {
-		$scope.resultList.push(quote);
-		$scope.codesList.push(quote.Symbol);
+	$scope.createWatchItem = function (quotes) {
+		quotes.forEach(function (quote) {
+			$scope.resultList.push(quote);
+			$scope.codesList.push(quote.Symbol);
+		});	
 	};
 
 	// Get current page for navigation menu CSS
@@ -140,7 +198,7 @@ financeApp.controller('initController', ['$scope', function ($scope) {
 }]);
 
 // Chart window controller
-financeApp.controller('chartController', ['$scope', '$resource', '$routeParams', 'rangeService', function ($scope, $resource, $routeParams, rangeService) {
+financeApp.controller('chartController', ['$scope', '$log', '$resource', '$routeParams', 'rangeService', 'yahooAPI', 'dataManipulate', function ($scope, $log, $resource, $routeParams, rangeService, yahooAPI, dataManipulate) {
 	// Set default values
 	$scope.asxcode = $routeParams.asxcode;
 	$scope.range = $routeParams.range || rangeService.range;
@@ -152,28 +210,6 @@ financeApp.controller('chartController', ['$scope', '$resource', '$routeParams',
 		rangeService.range = $scope.range;
 	});
 
-	// Convert finance API date data to date format for chart library
-	$scope.convertForChart = function (quotes) {
-		var newdata = [];
-		quotes.forEach(function (quote) {
-			newdata.push([moment(quote['Date']).valueOf(), parseFloat(quote['Adj_Close'])]);
-		});
-		newdata = newdata.sort($scope.sortDates());
-		return newdata;
-	};
-
-	// Sort dates for charting
-	$scope.sortDates = function (a,b) {
-		function sortFunction(a, b) {
-		    if (a[0] === b[0]) {
-		        return 0;
-		    }
-		    else {
-		        return (a[0] < b[0]) ? -1 : 1;
-		    }
-		}
-	};
-	
 	// Set chart start dates based on range value selected
 	switch($scope.range) {
 		case 'week':
@@ -197,18 +233,12 @@ financeApp.controller('chartController', ['$scope', '$resource', '$routeParams',
 			break;
 	};
 
-	financeAPI = $resource('https://query.yahooapis.com/v1/public/yql', {callback: "JSON_CALLBACK" }, {get: {method: "JSONP"}});		
-	financeAPI.get({q: decodeURIComponent('select%20Date%2CAdj_Close%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22' + $scope.asxcode + '.AX%22%20and%20startDate%20%3D%20%22' + moment($scope.startdate).format('YYYY-MM-DD') + '%22%20and%20endDate%20%3D%20%22' + moment($scope.enddate).format('YYYY-MM-DD') + '%22'),
-		format: 'json', env: decodeURIComponent('store%3A%2F%2Fdatatables.org%2Falltableswithkeys')})
-		.$promise.then(function (response) {
-			$scope.rawquotes = response.query.results.quote;
-			$scope.dataLoaded = true;
-
-			$scope.quotes = $scope.convertForChart($scope.rawquotes);
-
-		}, function (error) {
-			console.log(error);
-		});
+	yahooAPI.getHistorical($scope.asxcode, $scope.startdate, $scope.enddate).then(function (response) {
+		$scope.quotes = dataManipulate.convertForChart(response.query.results.quote).sort(dataManipulate.sortDates());
+		$scope.dataLoaded = true;
+	}, function (error) {
+		$log.error(error);
+	});	
 
 
 }]);
