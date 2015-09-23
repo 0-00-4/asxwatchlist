@@ -36,11 +36,11 @@ financeApp.service('rangeService', function () {
 });
 
 // Define controllers
-	// Navigation page controller
+// Navigation page controller
 financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$location', function ($scope, $resource, $cookies, $location) {
 	// Set default values
 	$scope.resultList = [];
-	$scope.cookieexp = moment().add(3, 'months').toDate();
+	$scope.cookieExp = moment().add(3, 'months').toDate();
 	$scope.dataLoaded = true;
 	$scope.codesList = [];
 
@@ -68,7 +68,11 @@ financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$loc
 	$scope.newWatchItem = function () {
 		var newcode = $scope.asxcodeinput;
 
-		if ($scope.codesList.indexOf(newcode + '.AX') > -1) {
+		if (newcode == null) {
+			alert('Please enter a valid ASX equities code...');
+			return;
+		}
+		else if ($scope.codesList.indexOf(newcode + '.AX') > -1) {
 			alert('You are already tracking ' + newcode.toUpperCase() + '!');
 			return;
 		}
@@ -84,7 +88,7 @@ financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$loc
 
 				if(quote.StockExchange != null) {
 					$scope.createWatchItem(quote);
-					$cookies.putObject('codesCookie', $scope.codesList, {expires: $scope.cookieexp});
+					$cookies.putObject('codesCookie', $scope.codesList, {expires: $scope.cookieExp});
 					$location.path('/' + (quote.Symbol).split('.')[0].toUpperCase());
 				}
 				else {
@@ -108,7 +112,7 @@ financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$loc
 				$scope.codesList.splice(key, 1);
 			}
 		});
-		$cookies.putObject('codesCookie', $scope.codesList, {expires: $scope.cookieexp});
+		$cookies.putObject('codesCookie', $scope.codesList, {expires: $scope.cookieExp});
 
 		$location.path('/');
 	};
@@ -272,6 +276,7 @@ financeApp.directive('stockChart', function () {
 
 	            series : [{
 	                name : scope.$parent.asxcode + ' Stock Price',
+	                id : 'primary',
 	                data : scope.data,
 	                marker : {
 	                    enabled : true,
@@ -281,6 +286,21 @@ financeApp.directive('stockChart', function () {
 	                tooltip : {
 	                    valueDecimals : 2
 	                }
+	            }, {
+	            	name: '12-day EMA',
+	                linkedTo: 'primary',
+	                showInLegend: true,
+	                type: 'trendline',
+	                algorithm: 'EMA',
+	                periods: 12
+	            }, 
+	            	{
+	            	name: '26-day EMA',
+	                linkedTo: 'primary',
+	                showInLegend: true,
+	                type: 'trendline',
+	                algorithm: 'EMA',
+	                periods: 26
 	            }]
 			});
 		}

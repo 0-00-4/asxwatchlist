@@ -5,21 +5,21 @@
 
 	<title>ASX Watchlist and Charts</title>
 
-	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-	<link rel="stylesheet" href="http://css-spinners.com/css/spinner/throbber.css" type="text/css">
-	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/throbber.css" type="text/css">
+	<link rel="stylesheet" href="css/styles.css" type="text/css">
 
 	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
 
-	<script src="https://code.angularjs.org/1.4.5/angular.js"></script>
-	<script src="https://code.angularjs.org/1.4.5/angular-route.min.js"></script>
-	<script src="https://code.angularjs.org/1.4.5/angular-resource.min.js"></script>
-	<script src="https://code.angularjs.org/1.4.5/angular-cookies.min.js"></script>
-	<script src="http://code.highcharts.com/adapters/standalone-framework.js"></script>
-	<script src="http://code.highcharts.com/stock/highstock.js"></script>
-	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="bower_components/angular-mocks/angular-mocks.js"></script>
+	<script src="bower_components/angular-route/angular-route.js"></script>
+	<script src="bower_components/angular-resource/angular-resource.js"></script>
+	<script src="bower_components/angular-cookies/angular-cookies.js"></script>
+	<script src="bower_components/highstock/adapters/standalone-framework.js"></script>
+	<script src="bower_components/highstock/highstock.js"></script>
+	<script src="bower_components/technical-indicators/technical-indicators.src.js"></script>
+	<script src="bower_components/moment/min/moment.min.js"></script>
 	<script src="app/app.js"></script>
 </head>
 <body>
@@ -34,11 +34,11 @@
 
 	<div class="container-fluid" id="mainContainer">
 		<div class="row">
-			<div class="floatLeft" id="leftDiv" ng-controller="navController">
+			<div class="col-md-3" ng-controller="navController">
 				<form class="form-inline">
 					<div class="form-group floatLeft">
 						<label class="sr-only" for="asxinput">ASX Code</label>
-						<input type="text" class="form-control" id="asxInput" placeholder="ASX Code" ng-model="asxcodeinput" />
+						<input type="text" class="form-control" id="asxInput" placeholder="ASX Code (e.g. CBA)" ng-model="asxcodeinput" />
 					</div>
 					<span>&nbsp;</span>
 					<button class="btn btn-success" id="asxButton" ng-click="newWatchItem()">Add</button>
@@ -51,7 +51,7 @@
 				</div>
 				<div id="watchlistLoader" ng-hide="dataLoaded"><div class="throbber-loader">Loading...</div></div>
 			</div>
-			<div class="floatLeft" id="rightDiv" ng-view>
+			<div class="col-md-9" ng-view>
 
 			</div>
 		</div>

@@ -55,7 +55,6 @@
 .watchItem {
 	display: block;
 	height: 80px;
-	width: 100%;
 	border-bottom: 1px solid #CCC;
 	padding: 5px;
 }
@@ -119,6 +118,7 @@
 #rangeContainer {
 	text-align: center;
 	padding-bottom: 15px;
+	padding-top: 25px;
 }
 
 #rangeContainer a {
@@ -138,10 +138,6 @@
 #watchlistLoader {
 	text-align: center;
 	padding-top: 10px;
-	width: 100%;
-}
-
-#asxInput {
 	width: 100%;
 }
 
