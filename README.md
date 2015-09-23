@@ -2,4 +2,4 @@
 
 <p>Built on AngularJS, utilising the Yahoo! Finance API.</p>
 
-<a href="simonwhite.io/finance" target="_blank">Live Demo</a>
+<a href="http://simonwhite.io/finance" target="_blank">Live Demo</a>
