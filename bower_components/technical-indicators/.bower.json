@@ -28,15 +28,15 @@
     "type": "git",
     "url": "https://github.com/laff/technical-indicators"
   },
-  "homepage": "https://github.com/seonixx/technical-indicators",
-  "_release": "ae9f919db7",
+  "homepage": "https://github.com/laff/technical-indicators",
+  "_release": "635cc241a4",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "ae9f919db7e11fb3a57b87077e375dcb22a33217"
+    "commit": "635cc241a475c6d804dce374f8023d0ad2e7871c"
   },
-  "_source": "https://github.com/seonixx/technical-indicators.git",
+  "_source": "https://github.com/laff/technical-indicators.git",
   "_target": "*",
-  "_originalSource": "https://github.com/seonixx/technical-indicators.git",
+  "_originalSource": "https://github.com/laff/technical-indicators.git",
   "_direct": true
 }
