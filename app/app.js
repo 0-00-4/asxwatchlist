@@ -126,7 +126,6 @@ financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$loc
 	// Add a new watchlist item (triggered on button click)
 	$scope.newWatchItem = function (asxcode) {
 		var newcode = asxcode + ".AX";
-		$scope.dataLoaded = false;
 
 		if (newcode == null) {
 			$window.alert('Please enter a valid ASX equities code...');
@@ -136,6 +135,8 @@ financeApp.controller('navController', ['$scope', '$resource', '$cookies', '$loc
 			$window.alert('You are already tracking ' + newcode.toUpperCase() + '!');
 			return;
 		}
+
+		$scope.dataLoaded = false;
 
 		yahooAPI.getQuote(newcode).then(function (response) {
 			$scope.dataLoaded = true;
